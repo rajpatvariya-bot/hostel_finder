@@ -367,16 +367,54 @@ public class OwnerHostelController {
   }
 
   private void replaceRoomTypes(Hostel hostel, List<RoomTypeRequest> roomTypes) {
-    hostel.getRoomTypes().clear();
+    // If this is a new hostel (no id yet) simply add all room types as new entries
+    if (hostel.getId() == null) {
+      hostel.getRoomTypes().clear();
+      for (RoomTypeRequest roomTypeRequest : roomTypes) {
+        HostelRoomType roomType = new HostelRoomType();
+        roomType.setHostel(hostel);
+        roomType.setRoomType(roomTypeRequest.roomType().trim());
+        roomType.setPricePerMonth(roomTypeRequest.pricePerMonth());
+        roomType.setTotalRooms(roomTypeRequest.totalRooms());
+        roomType.setAvailableRooms(roomTypeRequest.availableRooms());
+        hostel.getRoomTypes().add(roomType);
+      }
+    } else {
+      // Merge incoming room types with existing ones using DB id when provided
+      // Build map of existing room types by id
+      java.util.Map<Long, HostelRoomType> existingById = new java.util.HashMap<>();
+      for (HostelRoomType existing : new ArrayList<>(hostel.getRoomTypes())) {
+        if (existing.getId() != null) existingById.put(existing.getId(), existing);
+      }
 
-    for (RoomTypeRequest roomTypeRequest : roomTypes) {
-      HostelRoomType roomType = new HostelRoomType();
-      roomType.setHostel(hostel);
-      roomType.setRoomType(roomTypeRequest.roomType().trim());
-      roomType.setPricePerMonth(roomTypeRequest.pricePerMonth());
-      roomType.setTotalRooms(roomTypeRequest.totalRooms());
-      roomType.setAvailableRooms(roomTypeRequest.availableRooms());
-      hostel.getRoomTypes().add(roomType);
+      // Track incoming ids to detect deletions
+      java.util.Set<Long> incomingIds = new java.util.HashSet<>();
+
+      for (RoomTypeRequest req : roomTypes) {
+        if (req == null) continue;
+        Long rid = req.id();
+        if (rid != null && existingById.containsKey(rid)) {
+          // update existing
+          HostelRoomType existing = existingById.get(rid);
+          existing.setRoomType(req.roomType().trim());
+          existing.setPricePerMonth(req.pricePerMonth());
+          existing.setTotalRooms(req.totalRooms());
+          existing.setAvailableRooms(req.availableRooms());
+          incomingIds.add(rid);
+        } else {
+          // new room type
+          HostelRoomType roomType = new HostelRoomType();
+          roomType.setHostel(hostel);
+          roomType.setRoomType(req.roomType().trim());
+          roomType.setPricePerMonth(req.pricePerMonth());
+          roomType.setTotalRooms(req.totalRooms());
+          roomType.setAvailableRooms(req.availableRooms());
+          hostel.getRoomTypes().add(roomType);
+        }
+      }
+
+      // Remove any existing room types not present in incoming list
+      hostel.getRoomTypes().removeIf(rt -> rt.getId() != null && !incomingIds.contains(rt.getId()));
     }
 
     recalculateDerivedHostelFields(hostel);

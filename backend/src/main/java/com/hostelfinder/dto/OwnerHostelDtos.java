@@ -5,6 +5,7 @@ import java.util.List;
 
 public class OwnerHostelDtos {
   public record RoomTypeRequest(
+    Long id,
     String roomType,
     BigDecimal pricePerMonth,
     int totalRooms,

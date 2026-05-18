@@ -9,6 +9,8 @@ const els = {
   hostelForm: document.getElementById("hostelForm"),
   citySelect: document.getElementById("citySelect"),
   areaSelect: document.getElementById("areaSelect"),
+  roomTypesContainer: document.getElementById("roomTypesContainer"),
+  addRoomTypeBtn: document.getElementById("addRoomTypeBtn"),
   tabHostels: document.getElementById("tabHostels"),
   tabInquiries: document.getElementById("tabInquiries"),
   sectionHostels: document.getElementById("sectionHostels"),
@@ -39,6 +41,8 @@ async function init() {
     editingHostelId = null;
     els.hostelForm.reset();
     document.getElementById("modalTitle").textContent = "Add New Hostel";
+    // Reset room types to a single empty row
+    renderRoomTypes([]);
     els.hostelModal.style.display = "flex";
   };
   
@@ -54,6 +58,8 @@ async function init() {
     e.preventDefault();
     await saveHostel();
   };
+
+  els.addRoomTypeBtn?.addEventListener('click', () => addRoomTypeRow());
 
   els.logoutBtn.onclick = () => {
     localStorage.clear();
@@ -320,7 +326,8 @@ async function saveHostel() {
     messAvailable: document.getElementById("messAvailable").checked,
     totalRooms: parseInt(document.getElementById("totalRooms").value),
     availableRooms: parseInt(document.getElementById("availableRooms").value),
-    facilityIds: facilityIds
+    facilityIds: facilityIds,
+    roomTypes: gatherRoomTypes()
   };
 
   try {
@@ -366,12 +373,63 @@ window.editHostel = async (id) => {
     document.getElementById("messAvailable").checked = hostel.messAvailable;
     document.getElementById("totalRooms").value = hostel.totalRooms;
     document.getElementById("availableRooms").value = hostel.availableRooms;
+    // Populate room types if provided
+    renderRoomTypes(hostel.roomTypes || []);
     
     els.hostelModal.style.display = "flex";
   } catch (err) {
     alert("Failed to load hostel data: " + err.message);
   }
 };
+
+function addRoomTypeRow(data = {}) {
+  const id = data.id || '';
+  const container = document.createElement('div');
+  container.className = 'room-type-row';
+  container.style.display = 'grid';
+  container.style.gridTemplateColumns = '1fr 120px 80px 80px 60px';
+  container.style.gap = '8px';
+
+  container.innerHTML = `
+    <input type="hidden" class="rt-id" value="${id}">
+    <input type="text" class="input rt-name" placeholder="Room Type (e.g. 2 Bed Room)" value="${escapeHtml(data.roomType || '')}">
+    <input type="number" class="input rt-price" placeholder="Price" value="${data.pricePerMonth ?? ''}">
+    <input type="number" class="input rt-total" placeholder="Total" value="${data.totalRooms ?? ''}">
+    <div style="display:flex; gap:6px; align-items:center;"><input type="number" class="input rt-available" placeholder="Avail" value="${data.availableRooms ?? ''}" style="width:60px;"><button type="button" class="btn btn-sm btn-danger rt-remove">Remove</button></div>
+  `;
+
+  container.querySelector('.rt-remove').addEventListener('click', () => {
+    container.remove();
+  });
+
+  els.roomTypesContainer.appendChild(container);
+}
+
+function renderRoomTypes(list) {
+  els.roomTypesContainer.innerHTML = '';
+  if (!list || list.length === 0) {
+    addRoomTypeRow();
+    return;
+  }
+  list.forEach(item => {
+    // Map backend fields to form fields
+    addRoomTypeRow({ id: item.id, roomType: item.roomType, pricePerMonth: item.pricePerMonth, totalRooms: item.totalRooms, availableRooms: item.availableRooms });
+  });
+}
+
+function gatherRoomTypes() {
+  const rows = Array.from(els.roomTypesContainer.querySelectorAll('.room-type-row'));
+  return rows.map(r => {
+    const idVal = r.querySelector('.rt-id').value;
+    return {
+      id: idVal ? parseInt(idVal) : null,
+      roomType: r.querySelector('.rt-name').value.trim(),
+      pricePerMonth: parseFloat(r.querySelector('.rt-price').value) || 0,
+      totalRooms: parseInt(r.querySelector('.rt-total').value) || 0,
+      availableRooms: parseInt(r.querySelector('.rt-available').value) || 0
+    };
+  }).filter(rt => rt.roomType && rt.pricePerMonth > 0 && rt.totalRooms > 0);
+}
 
 function escapeHtml(s) {
   return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
