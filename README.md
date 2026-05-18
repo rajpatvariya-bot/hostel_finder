@@ -1,3 +1,33 @@
+# Hostel Finder
+
+This repository contains a Java (Maven) backend and a static frontend for the Hostel Finder project.
+
+Quick overview
+- Backend: `backend/` (Maven project)
+- Frontend: `frontend1/` and `backend/src/main/resources/frontend/` (static assets)
+- Uploads: `uploads/` (user-provided files)
+
+Prerequisites
+- Java 17+ and Maven for the backend
+- A modern browser for the frontend
+
+Run (local, platform-specific scripts included)
+Use the included helper scripts in the project root:
+
+Windows (PowerShell / CMD):
+
+```
+./run.bat
+./run-backend.bat
+./run-frontend.bat
+```
+
+Notes
+- Do not commit sensitive data or credentials. Keep uploads and local secrets out of version control.
+- The `.gitignore` excludes build artifacts and IDE files. Adjust it if you add new tools.
+
+Contact
+- Repository: https://github.com/rajpatvariya-bot/hostel_finnder
 # Hostel Finder Web Application (Indore) — College Project
 
 This repo has **two folders**:
