@@ -1,0 +1,75 @@
+# Ignore Maven build output
+target/
+*.class
+
+# IntelliJ
+.idea/
+*.iml
+
+# VSCode
+.vscode/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node modules and Yarn
+node_modules/
+
+# npm debug
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+
+# Maven wrapper jar (keep wrapper scripts)
+!/.mvn/wrapper/maven-wrapper.jar
+
+# Distribution / build folders (if present)
+dist/
+build/
+
+# Ignore IDE specific project files
+*.ipr
+*.iws
+# Java / Maven
+# Java / Maven
+**/target/
+*.class
+*.log
+*.jar
+*.war
+*.ear
+
+# Maven wrapper
+mvnw
+mvnw.cmd
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment / secrets
+.env
+.env.*
+secrets.*
+*.pem
+*.key
+
+# Uploads and runtime data
+/uploads/
+uploads/
+
+# OS files
+.DS_Store
+Thumbs.db
