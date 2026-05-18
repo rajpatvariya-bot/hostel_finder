@@ -380,11 +380,16 @@ public class OwnerHostelController {
         hostel.getRoomTypes().add(roomType);
       }
     } else {
-      // Merge incoming room types with existing ones using DB id when provided
-      // Build map of existing room types by id
+      // Merge incoming room types with existing ones.
+      // Build maps of existing room types by id and by normalized name so we can
+      // update even when the frontend doesn't send the id.
       java.util.Map<Long, HostelRoomType> existingById = new java.util.HashMap<>();
+      java.util.Map<String, HostelRoomType> existingByName = new java.util.HashMap<>();
       for (HostelRoomType existing : new ArrayList<>(hostel.getRoomTypes())) {
         if (existing.getId() != null) existingById.put(existing.getId(), existing);
+        if (existing.getRoomType() != null) {
+          existingByName.put(existing.getRoomType().trim().toLowerCase(Locale.ROOT), existing);
+        }
       }
 
       // Track incoming ids to detect deletions
@@ -393,14 +398,24 @@ public class OwnerHostelController {
       for (RoomTypeRequest req : roomTypes) {
         if (req == null) continue;
         Long rid = req.id();
+        String normalized = req.roomType() == null ? null : req.roomType().trim().toLowerCase(Locale.ROOT);
+
         if (rid != null && existingById.containsKey(rid)) {
-          // update existing
+          // update existing by id
           HostelRoomType existing = existingById.get(rid);
           existing.setRoomType(req.roomType().trim());
           existing.setPricePerMonth(req.pricePerMonth());
           existing.setTotalRooms(req.totalRooms());
           existing.setAvailableRooms(req.availableRooms());
           incomingIds.add(rid);
+        } else if (normalized != null && existingByName.containsKey(normalized)) {
+          // frontend didn't provide id but room type name matches an existing one -> update
+          HostelRoomType existing = existingByName.get(normalized);
+          existing.setRoomType(req.roomType().trim());
+          existing.setPricePerMonth(req.pricePerMonth());
+          existing.setTotalRooms(req.totalRooms());
+          existing.setAvailableRooms(req.availableRooms());
+          if (existing.getId() != null) incomingIds.add(existing.getId());
         } else {
           // new room type
           HostelRoomType roomType = new HostelRoomType();
