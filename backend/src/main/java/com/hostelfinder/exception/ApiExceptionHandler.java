@@ -6,6 +6,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -36,6 +37,16 @@ public class ApiExceptionHandler {
     body.put("status", ex.getStatus().value());
     body.put("message", ex.getMessage());
     return ResponseEntity.status(ex.getStatus()).body(body);
+  }
+
+  @ExceptionHandler(NoResourceFoundException.class)
+  public ResponseEntity<?> handleNoResourceFound(NoResourceFoundException ex) {
+    Map<String, Object> body = new LinkedHashMap<>();
+    body.put("timestamp", Instant.now().toString());
+    body.put("status", 404);
+    body.put("message", "Requested resource or endpoint not found");
+    body.put("error", "NotFound");
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
   }
 
   @ExceptionHandler(Exception.class)
