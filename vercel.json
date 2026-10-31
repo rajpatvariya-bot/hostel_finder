@@ -10,6 +10,14 @@
   ],
   "rewrites": [
     {
+      "source": "/api/:match*",
+      "destination": "https://hostel-finder-88mw.onrender.com/api/:match*"
+    },
+    {
+      "source": "/uploads/:match*",
+      "destination": "https://hostel-finder-88mw.onrender.com/uploads/:match*"
+    },
+    {
       "source": "/index.html",
       "destination": "/backend/src/main/resources/static/pages/index.html"
     },

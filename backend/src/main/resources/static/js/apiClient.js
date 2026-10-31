@@ -1,4 +1,7 @@
-const DEFAULT_API = "http://localhost:8080/api";
+const LOCAL_API = "http://localhost:8080/api";
+const PROD_API = "https://hostel-finder-88mw.onrender.com/api";
+const isLocal = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+const DEFAULT_API = isLocal ? LOCAL_API : PROD_API;
 export const API_BASE = (typeof window !== "undefined" && (window.API_BASE || localStorage.getItem("API_BASE"))) || DEFAULT_API;
 
 // Retry configuration
