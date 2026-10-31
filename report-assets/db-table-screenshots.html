@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hostel Finder System - Database Tables</title>
+  <style>
+    :root {
+      --bg: #eef3f8;
+      --card: #ffffff;
+      --ink: #16324f;
+      --muted: #5c6f82;
+      --line: #cdd8e5;
+      --head: #dce9f6;
+      --accent: #1f5f99;
+      --pk: #1d7d4d;
+      --fk: #9b5d00;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: linear-gradient(180deg, #f7fafc 0%, var(--bg) 100%);
+      color: var(--ink);
+      padding: 28px;
+    }
+
+    .sheet {
+      width: 1400px;
+      margin: 0 auto 28px;
+      background: rgba(255, 255, 255, 0.45);
+      border: 1px solid #d6e0ea;
+      border-radius: 22px;
+      padding: 26px;
+      box-shadow: 0 18px 40px rgba(30, 56, 84, 0.08);
+    }
+
+    .sheet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      margin-bottom: 18px;
+      border-bottom: 2px solid #d7e3ef;
+      padding-bottom: 12px;
+    }
+
+    .sheet-title {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .sheet-subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      font-size: 13px;
+    }
+
+    .chip {
+      padding: 6px 10px;
+      border-radius: 999px;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .chip.pk {
+      background: var(--pk);
+    }
+
+    .chip.fk {
+      background: var(--fk);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 10px 20px rgba(24, 51, 79, 0.05);
+    }
+
+    .card h2 {
+      margin: 0;
+      padding: 14px 18px;
+      background: linear-gradient(135deg, #edf4fb 0%, #d9e8f8 100%);
+      font-size: 21px;
+      color: var(--accent);
+      border-bottom: 1px solid var(--line);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 9px 12px;
+      vertical-align: top;
+      border-bottom: 1px solid #e7edf4;
+    }
+
+    th {
+      background: var(--head);
+      font-size: 12px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      color: #35516d;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .tag.pk {
+      background: var(--pk);
+    }
+
+    .tag.fk {
+      background: var(--fk);
+    }
+
+    .notes {
+      padding: 10px 14px 14px;
+      color: var(--muted);
+      font-size: 12px;
+      border-top: 1px solid #e7edf4;
+      background: #fbfdff;
+    }
+  </style>
+</head>
+<body>
+  <section class="sheet">
+    <div class="sheet-header">
+      <div>
+        <h1 class="sheet-title">Hostel Finder System Database Tables</h1>
+        <p class="sheet-subtitle">Core identity, verification, and location management tables</p>
+      </div>
+      <div class="legend">
+        <span class="chip pk">Primary Key</span>
+        <span class="chip fk">Foreign Key</span>
+      </div>
+    </div>
+    <div class="grid">
+      <article class="card">
+        <h2>users</h2>
+        <table>
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td>id</td><td>BIGINT</td><td><span class="tag pk">PK</span></td><td>Unique user identifier</td></tr>
+          <tr><td>role</td><td>ENUM</td><td></td><td>User role: Admin, Owner, Student</td></tr>
+          <tr><td>name</td><td>VARCHAR(120)</td><td></td><td>Full name of user</td></tr>
+          <tr><td>email</td><td>VARCHAR(180)</td><td></td><td>Unique email address</td></tr>
+          <tr><td>phone</td><td>VARCHAR(20)</td><td></td><td>Unique phone number</td></tr>
+          <tr><td>password_hash</td><td>VARCHAR(255)</td><td></td><td>Encrypted password value</td></tr>
+          <tr><td>gender</td><td>ENUM</td><td></td><td>Gender of user</td></tr>
+          <tr><td>age</td><td>INT</td><td></td><td>Age of user</td></tr>
+          <tr><td>address</td><td>VARCHAR(255)</td><td></td><td>Address details</td></tr>
+          <tr><td>status</td><td>ENUM</td><td></td><td>Current account status</td></tr>
+          <tr><td>created_at</td><td>DATETIME</td><td></td><td>Account creation time</td></tr>
+        </table>
+      </article>
+
+      <article class="card">
+        <h2>admins</h2>
+        <table>
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td>user_id</td><td>BIGINT</td><td><span class="tag pk">PK</span> <span class="tag fk">FK</span></td><td>References admin user in users table</td></tr>
+          <tr><td>created_at</td><td>DATETIME</td><td></td><td>Admin record creation time</td></tr>
+        </table>
+        <div class="notes">Maps an existing user record to administrator privileges.</div>
+      </article>
+
+      <article class="card">
+        <h2>hostel_owners</h2>
+        <table>
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td>user_id</td><td>BIGINT</td><td><span class="tag pk">PK</span> <span class="tag fk">FK</span></td><td>References owner in users table</td></tr>
+          <tr><td>owner_status</td><td>ENUM</td><td></td><td>Verification or approval status</td></tr>
+          <tr><td>verified_at</td><td>DATETIME</td><td></td><td>Date and time of verification</td></tr>
+          <tr><td>rejection_reason</td><td>VARCHAR(400)</td><td></td><td>Reason in case of rejection</td></tr>
+          <tr><td>created_at</td><td>DATETIME</td><td></td><td>Owner record creation time</td></tr>
+        </table>
+      </article>
+
+      <article class="card">
+        <h2>owner_documents</h2>
+        <table>
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td>document_id</td><td>BIGINT</td><td><span class="tag pk">PK</span></td><td>Unique document identifier</td></tr>
+          <tr><td>owner_user_id</td><td>BIGINT</td><td><span class="tag fk">FK</span></td><td>References hostel owner</td></tr>
+          <tr><td>doc_type</td><td>ENUM</td><td></td><td>Type of uploaded document</td></tr>
+          <tr><td>file_url</td><td>VARCHAR(600)</td><td></td><td>Path of uploaded file</td></tr>
+          <tr><td>file_mime</td><td>VARCHAR(100)</td><td></td><td>File MIME type</td></tr>
+          <tr><td>file_size_bytes</td><td>BIGINT</td><td></td><td>File size in bytes</td></tr>
+          <tr><td>admin_status</td><td>ENUM</td><td></td><td>Approval state assigned by admin</td></tr>
+          <tr><td>admin_note</td><td>VARCHAR(400)</td><td></td><td>Remarks from admin</td></tr>
+          <tr><td>submitted_at</td><td>DATETIME</td><td></td><td>Submission date and time</td></tr>
+        </table>
+      </article>
+
+      <article class="card">
+        <h2>verification_reviews</h2>
+        <table>
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td>review_id</td><td>BIGINT</td><td><span class="tag pk">PK</span></td><td>Unique review identifier</td></tr>
+          <tr><td>owner_user_id</td><td>BIGINT</td><td><span class="tag fk">FK</span></td><td>References hostel owner</td></tr>
+          <tr><td>admin_user_id</td><td>BIGINT</td><td><span class="tag fk">FK</span></td><td>References admin account</td></tr>
+          <tr><td>decision</td><td>ENUM</td><td></td><td>Review decision</td></tr>
+          <tr><td>note</td><td>VARCHAR(400)</td><td></td><td>Additional review note</td></tr>
+          <tr><td>created_at</td><td>DATETIME</td><td></td><td>Review creation time</td></tr>
+        </table>
+      </article>
+
+      <article class="card">
+        <h2>otp_verifications</h2>
+        <table>
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td>id</td><td>BIGINT</td><td><span class="tag pk">PK</span></td><td>Unique OTP record identifier</td></tr>
+          <tr><td>identifier</td><td>VARCHAR(180)</td><td></td><td>Email or mobile linked to OTP</td></tr>
+          <tr><td>otp_code</td><td>VARCHAR(255)</td><td></td><td>Stored OTP value</td></tr>
+          <tr><td>expiry_time</td><td>DATETIME</td><td></td><td>OTP expiry timestamp</td></tr>
+          <tr><td>is_verified</td><td>TINYINT(1)</td><td></td><td>Verification status flag</td></tr>
+          <tr><td>attempts</td><td>INT</td><td></td><td>Number of attempts made</td></tr>
+          <tr><td>created_at</td><td>DATETIME</td><td></td><td>Record creation time</td></tr>
+        </table>
+      </article>
+    </div>
+  </section>
+
+  <section class="sheet">
+    <div class="sheet-header">
+      <div>
+        <h1 class="sheet-title">Hostel Finder System Database Tables</h1>
+        <p class="sheet-subtitle">Location, facilities, and hostel master tables</p>
+      </div>
+      <div class="legend">
+        <span class="chip pk">Primary Key</span>
+        <span class="chip fk">Foreign Key</span>
+      </div>
+    </div>
+    <div class="grid">
+      <article class="card">
+        <h2>cities</h2>
+        <table>
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td>city_id</td><td>INT</td><td><span class="tag pk">PK</span></td><td>Unique city identifier</td></tr>
+          <tr><td>name</td><td>VARCHAR(80)</td><td></td><td>Name of city</td></tr>
+        </table>
+      </article>
+
+      <article class="card">
+        <h2>areas</h2>
+        <table>
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td>area_id</td><td>INT</td><td><span class="tag pk">PK</span></td><td>Unique area identifier</td></tr>
+          <tr><td>city_id</td><td>INT</td><td><span class="tag fk">FK</span></td><td>References related city</td></tr>
+          <tr><td>name</td><td>VARCHAR(80)</td><td></td><td>Name of area or locality</td></tr>
+          <tr><td>created_at</td><td>DATETIME</td><td></td><td>Area record creation time</td></tr>
+        </table>
+      </article>
+
+      <article class="card">
+        <h2>facilities</h2>
+        <table>
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td>facility_id</td><td>INT</td><td><span class="tag pk">PK</span></td><td>Unique facility identifier</td></tr>
+          <tr><td>name</td><td>VARCHAR(60)</td><td></td><td>Facility name</td></tr>
+        </table>
+      </article>
+
+      <article class="card">
+        <h2>hostels</h2>
+        <table>
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td>hostel_id</td><td>BIGINT</td><td><span class="tag pk">PK</span></td><td>Unique hostel identifier</td></tr>
+          <tr><td>owner_user_id</td><td>BIGINT</td><td><span class="tag fk">FK</span></td><td>References hostel owner</td></tr>
+          <tr><td>city_id</td><td>INT</td><td><span class="tag fk">FK</span></td><td>References city</td></tr>
+          <tr><td>area_id</td><td>INT</td><td><span class="tag fk">FK</span></td><td>References area</td></tr>
+          <tr><td>hostel_name</td><td>VARCHAR(140)</td><td></td><td>Name of hostel</td></tr>
+          <tr><td>address_line</td><td>VARCHAR(255)</td><td></td><td>Full hostel address</td></tr>
+          <tr><td>price_per_month</td><td>DECIMAL(10,2)</td><td></td><td>Monthly hostel fee</td></tr>
+          <tr><td>gender_type</td><td>ENUM</td><td></td><td>Hostel category: boys, girls, co-ed</td></tr>
+          <tr><td>mess_available</td><td>TINYINT(1)</td><td></td><td>Mess facility availability</td></tr>
+          <tr><td>description</td><td>TEXT</td><td></td><td>Hostel description</td></tr>
+          <tr><td>status</td><td>ENUM</td><td></td><td>Current hostel publishing status</td></tr>
+          <tr><td>total_rooms</td><td>INT</td><td></td><td>Total number of rooms</td></tr>
+          <tr><td>available_rooms</td><td>INT</td><td></td><td>Rooms currently available</td></tr>
+          <tr><td>created_at</td><td>DATETIME</td><td></td><td>Creation time</td></tr>
+          <tr><td>updated_at</td><td>DATETIME</td><td></td><td>Latest update time</td></tr>
+        </table>
+      </article>
+
+      <article class="card">
+        <h2>hostel_facilities</h2>
+        <table>
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td>hostel_id</td><td>BIGINT</td><td><span class="tag pk">PK</span> <span class="tag fk">FK</span></td><td>References hostel</td></tr>
+          <tr><td>facility_id</td><td>INT</td><td><span class="tag pk">PK</span> <span class="tag fk">FK</span></td><td>References facility</td></tr>
+        </table>
+        <div class="notes">Associative table for the many-to-many relationship between hostels and facilities.</div>
+      </article>
+
+      <article class="card">
+        <h2>hostel_images</h2>
+        <table>
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td>image_id</td><td>BIGINT</td><td><span class="tag pk">PK</span></td><td>Unique image identifier</td></tr>
+          <tr><td>hostel_id</td><td>BIGINT</td><td><span class="tag fk">FK</span></td><td>References hostel</td></tr>
+          <tr><td>file_url</td><td>VARCHAR(600)</td><td></td><td>Stored image path</td></tr>
+          <tr><td>sort_order</td><td>INT</td><td></td><td>Display order of image</td></tr>
+          <tr><td>created_at</td><td>DATETIME</td><td></td><td>Image insertion time</td></tr>
+        </table>
+      </article>
+    </div>
+  </section>
+
+  <section class="sheet">
+    <div class="sheet-header">
+      <div>
+        <h1 class="sheet-title">Hostel Finder System Database Tables</h1>
+        <p class="sheet-subtitle">Room management and inquiry processing tables</p>
+      </div>
+      <div class="legend">
+        <span class="chip pk">Primary Key</span>
+        <span class="chip fk">Foreign Key</span>
+      </div>
+    </div>
+    <div class="grid">
+      <article class="card">
+        <h2>rooms</h2>
+        <table>
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td>room_id</td><td>BIGINT</td><td><span class="tag pk">PK</span></td><td>Unique room identifier</td></tr>
+          <tr><td>hostel_id</td><td>BIGINT</td><td><span class="tag fk">FK</span></td><td>References hostel</td></tr>
+          <tr><td>room_number</td><td>VARCHAR(30)</td><td></td><td>Room number or label</td></tr>
+          <tr><td>is_available</td><td>TINYINT(1)</td><td></td><td>Availability status</td></tr>
+          <tr><td>is_active</td><td>TINYINT(1)</td><td></td><td>Operational room status</td></tr>
+          <tr><td>created_at</td><td>DATETIME</td><td></td><td>Creation time</td></tr>
+        </table>
+      </article>
+
+      <article class="card">
+        <h2>hostel_room_types</h2>
+        <table>
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td>room_type_id</td><td>BIGINT</td><td><span class="tag pk">PK</span></td><td>Unique room type identifier</td></tr>
+          <tr><td>hostel_id</td><td>BIGINT</td><td><span class="tag fk">FK</span></td><td>References hostel</td></tr>
+          <tr><td>room_type</td><td>VARCHAR(120)</td><td></td><td>Name of room type</td></tr>
+          <tr><td>price_per_month</td><td>DECIMAL(10,2)</td><td></td><td>Monthly rent for room type</td></tr>
+          <tr><td>total_rooms</td><td>INT</td><td></td><td>Total count of this room type</td></tr>
+          <tr><td>available_rooms</td><td>INT</td><td></td><td>Available count of this room type</td></tr>
+          <tr><td>created_at</td><td>DATETIME</td><td></td><td>Creation time</td></tr>
+          <tr><td>updated_at</td><td>DATETIME</td><td></td><td>Latest update time</td></tr>
+        </table>
+      </article>
+
+      <article class="card">
+        <h2>inquiries</h2>
+        <table>
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td>inquiry_id</td><td>BIGINT</td><td><span class="tag pk">PK</span></td><td>Unique inquiry identifier</td></tr>
+          <tr><td>hostel_id</td><td>BIGINT</td><td><span class="tag fk">FK</span></td><td>References hostel</td></tr>
+          <tr><td>room_type_id</td><td>BIGINT</td><td><span class="tag fk">FK</span></td><td>References room type</td></tr>
+          <tr><td>student_user_id</td><td>BIGINT</td><td><span class="tag fk">FK</span></td><td>References student user</td></tr>
+          <tr><td>requested_room_count</td><td>INT</td><td></td><td>Requested number of rooms</td></tr>
+          <tr><td>message</td><td>TEXT</td><td></td><td>Inquiry message</td></tr>
+          <tr><td>status</td><td>ENUM</td><td></td><td>Inquiry processing state</td></tr>
+          <tr><td>owner_note</td><td>VARCHAR(400)</td><td></td><td>Note added by owner</td></tr>
+          <tr><td>created_at</td><td>DATETIME</td><td></td><td>Creation time</td></tr>
+          <tr><td>updated_at</td><td>DATETIME</td><td></td><td>Latest update time</td></tr>
+        </table>
+      </article>
+
+      <article class="card">
+        <h2>inquiry_room_reservations</h2>
+        <table>
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td>reservation_id</td><td>BIGINT</td><td><span class="tag pk">PK</span></td><td>Unique reservation identifier</td></tr>
+          <tr><td>inquiry_id</td><td>BIGINT</td><td><span class="tag fk">FK</span></td><td>References inquiry</td></tr>
+          <tr><td>room_id</td><td>BIGINT</td><td><span class="tag fk">FK</span></td><td>References reserved room</td></tr>
+          <tr><td>reserved_at</td><td>DATETIME</td><td></td><td>Reservation timestamp</td></tr>
+        </table>
+      </article>
+    </div>
+  </section>
+</body>
+</html>

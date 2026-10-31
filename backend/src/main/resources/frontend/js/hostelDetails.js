@@ -148,6 +148,7 @@ async function submitBookingAfterPayment(result) {
 
   const bookingPayload = buildBookingPayload({
     hostelId: getHostelId(),
+    roomTypeId: paymentDetails.roomTypeId,
     requestedRoomCount: Number(roomCountEl.value || "1"),
     message: messageEl.value || "",
   });

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/pages/index.html",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/index.html",
+      "destination": "/backend/src/main/resources/static/pages/index.html"
+    },
+    {
+      "source": "/pages/:match*",
+      "destination": "/backend/src/main/resources/static/pages/:match*"
+    },
+    {
+      "source": "/css/:match*",
+      "destination": "/backend/src/main/resources/static/css/:match*"
+    },
+    {
+      "source": "/js/:match*",
+      "destination": "/backend/src/main/resources/static/js/:match*"
+    },
+    {
+      "source": "/img/:match*",
+      "destination": "/backend/src/main/resources/static/img/:match*"
+    },
+    {
+      "source": "/assets/:match*",
+      "destination": "/backend/src/main/resources/static/assets/:match*"
+    },
+    {
+      "source": "/:page((?!pages|css|js|img|assets|backend).+\\.html)",
+      "destination": "/backend/src/main/resources/static/pages/:page"
+    }
+  ]
+}

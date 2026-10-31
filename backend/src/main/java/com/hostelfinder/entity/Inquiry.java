@@ -14,6 +14,10 @@ public class Inquiry {
   @JoinColumn(name = "hostel_id", nullable = false)
   private Hostel hostel;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "room_type_id")
+  private HostelRoomType roomType;
+
   @ManyToOne(optional = false)
   @JoinColumn(name = "student_user_id", nullable = false)
   private User student;
@@ -39,6 +43,8 @@ public class Inquiry {
   public Long getId() { return id; }
   public Hostel getHostel() { return hostel; }
   public void setHostel(Hostel hostel) { this.hostel = hostel; }
+  public HostelRoomType getRoomType() { return roomType; }
+  public void setRoomType(HostelRoomType roomType) { this.roomType = roomType; }
   public int getRequestedRoomCount() { return requestedRoomCount; }
   public void setRequestedRoomCount(int requestedRoomCount) { this.requestedRoomCount = requestedRoomCount; }
   public String getMessage() { return message; }

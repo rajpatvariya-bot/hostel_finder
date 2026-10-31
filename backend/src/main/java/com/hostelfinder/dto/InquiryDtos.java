@@ -8,8 +8,13 @@ public class InquiryDtos {
     @NotNull Long hostelId,
     @Min(1) int requestedRoomCount,
     String message,
-    String requestType
-  ) {}
+    String requestType,
+    Long roomTypeId
+  ) {
+    public CreateInquiryRequest(Long hostelId, int requestedRoomCount, String message, String requestType) {
+      this(hostelId, requestedRoomCount, message, requestType, null);
+    }
+  }
 
   public record InquiryItem(
     Long id,
@@ -22,7 +27,9 @@ public class InquiryDtos {
     String message,
     String studentName,
     String studentPhone,
-    String ownerNote
+    String ownerNote,
+    Long roomTypeId,
+    String roomType
   ) {}
 
   public record UpdateInquiryStatusRequest(

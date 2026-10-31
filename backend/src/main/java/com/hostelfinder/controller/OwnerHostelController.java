@@ -21,9 +21,13 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -90,7 +94,7 @@ public class OwnerHostelController {
   @PutMapping("/{id}")
   public HostelDetailsResponse updateHostel(@AuthenticationPrincipal User user, @PathVariable Long id,
       @RequestBody UpdateHostelRequest req) {
-    Hostel h = hostelRepository.findById(id)
+    Hostel h = hostelRepository.findByIdFull(id)
         .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Hostel not found"));
 
     if (!h.getOwnerUserId().equals(user.getId())) {
@@ -235,7 +239,7 @@ public class OwnerHostelController {
   private HostelDetailsResponse mapToResponse(Hostel h) {
     List<HostelImageItem> images = buildImageItems(h);
     List<String> imageUrls = images.stream().map(HostelImageItem::imageUrl).toList();
-    List<HostelRoomTypeItem> roomTypes = h.getRoomTypes().stream().map(this::mapRoomTypeItem).toList();
+    List<HostelRoomTypeItem> roomTypes = mapDistinctRoomTypeItems(h.getRoomTypes());
     return new HostelDetailsResponse(
         h.getId(),
         h.getHostelName(),
@@ -380,75 +384,111 @@ public class OwnerHostelController {
         hostel.getRoomTypes().add(roomType);
       }
     } else {
-      // Merge incoming room types with existing ones.
-      // Build maps of existing room types by id and by normalized name so we can
-      // update even when the frontend doesn't send the id.
-      java.util.Map<Long, HostelRoomType> existingById = new java.util.HashMap<>();
-      java.util.Map<String, HostelRoomType> currentByName = new java.util.HashMap<>();
-      for (HostelRoomType existing : new ArrayList<>(hostel.getRoomTypes())) {
-        if (existing.getId() != null) existingById.put(existing.getId(), existing);
-        if (existing.getRoomType() != null) {
-          currentByName.put(existing.getRoomType().trim().toLowerCase(Locale.ROOT), existing);
+      List<HostelRoomType> existingRoomTypes = new ArrayList<>(hostel.getRoomTypes());
+      Map<Long, HostelRoomType> existingById = new HashMap<>();
+      Map<String, HostelRoomType> existingByName = new HashMap<>();
+      for (HostelRoomType existing : existingRoomTypes) {
+        if (existing.getId() != null) {
+          existingById.put(existing.getId(), existing);
+        }
+        String normalizedExistingName = normalizeRoomTypeName(existing.getRoomType());
+        if (normalizedExistingName != null) {
+          existingByName.put(normalizedExistingName, existing);
         }
       }
 
-      // Track incoming ids to detect deletions
-      java.util.Set<Long> incomingIds = new java.util.HashSet<>();
+      List<ResolvedRoomTypeUpdate> resolvedUpdates = new ArrayList<>();
+      Set<Long> matchedExistingIds = new HashSet<>();
+      Set<HostelRoomType> matchedExistingRoomTypes = new HashSet<>();
 
       for (RoomTypeRequest req : roomTypes) {
-        if (req == null) continue;
-        Long rid = req.id();
-        String name = req.roomType() == null ? null : req.roomType().trim();
-        String normalized = name == null ? null : name.toLowerCase(Locale.ROOT);
+        if (req == null) {
+          continue;
+        }
 
-        if (rid != null && existingById.containsKey(rid)) {
-          // update existing by id
-          HostelRoomType existing = existingById.get(rid);
-          // If name changed, update currentByName map
-          String oldNorm = existing.getRoomType() == null ? null : existing.getRoomType().trim().toLowerCase(Locale.ROOT);
-          existing.setRoomType(name);
-          existing.setPricePerMonth(req.pricePerMonth());
-          existing.setTotalRooms(req.totalRooms());
-          existing.setAvailableRooms(req.availableRooms());
-          if (oldNorm != null && !oldNorm.equals(normalized)) {
-            currentByName.remove(oldNorm);
-            if (normalized != null) currentByName.put(normalized, existing);
+        HostelRoomType existing = null;
+        if (req.id() != null) {
+          existing = existingById.get(req.id());
+          if (existing == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Room type id is invalid for this hostel");
           }
-          incomingIds.add(rid);
-        } else if (normalized != null && currentByName.containsKey(normalized)) {
-          // frontend didn't provide id but room type name matches an existing one -> update
-          HostelRoomType existing = currentByName.get(normalized);
-          existing.setRoomType(name);
-          existing.setPricePerMonth(req.pricePerMonth());
-          existing.setTotalRooms(req.totalRooms());
-          existing.setAvailableRooms(req.availableRooms());
-          if (existing.getId() != null) incomingIds.add(existing.getId());
         } else {
-          // new room type — ensure no duplicate in currentByName (may happen if frontend sent duplicates)
-          if (normalized != null && currentByName.containsKey(normalized)) {
-            HostelRoomType existing = currentByName.get(normalized);
-            existing.setPricePerMonth(req.pricePerMonth());
-            existing.setTotalRooms(req.totalRooms());
-            existing.setAvailableRooms(req.availableRooms());
-            if (existing.getId() != null) incomingIds.add(existing.getId());
-          } else {
-            HostelRoomType roomType = new HostelRoomType();
-            roomType.setHostel(hostel);
-            roomType.setRoomType(name);
-            roomType.setPricePerMonth(req.pricePerMonth());
-            roomType.setTotalRooms(req.totalRooms());
-            roomType.setAvailableRooms(req.availableRooms());
-            hostel.getRoomTypes().add(roomType);
-            if (normalized != null) currentByName.put(normalized, roomType);
+          String normalizedName = normalizeRoomTypeName(req.roomType());
+          HostelRoomType legacyMatch = normalizedName == null ? null : existingByName.get(normalizedName);
+          if (legacyMatch != null && !matchedExistingRoomTypes.contains(legacyMatch)) {
+            existing = legacyMatch;
           }
+        }
+
+        if (existing != null) {
+          matchedExistingIds.add(existing.getId());
+          matchedExistingRoomTypes.add(existing);
+        }
+
+        resolvedUpdates.add(new ResolvedRoomTypeUpdate(existing, req));
+      }
+
+      boolean removedAny = false;
+      Iterator<HostelRoomType> iterator = hostel.getRoomTypes().iterator();
+      while (iterator.hasNext()) {
+        HostelRoomType existing = iterator.next();
+        if (existing.getId() != null && !matchedExistingIds.contains(existing.getId())) {
+          iterator.remove();
+          removedAny = true;
         }
       }
 
-      // Remove any existing room types not present in incoming list
-      hostel.getRoomTypes().removeIf(rt -> rt.getId() != null && !incomingIds.contains(rt.getId()));
+      boolean renamedAny = false;
+      int renameSequence = 0;
+      for (ResolvedRoomTypeUpdate resolved : resolvedUpdates) {
+        HostelRoomType existing = resolved.existing();
+        if (existing == null) {
+          continue;
+        }
+
+        String currentNormalizedName = normalizeRoomTypeName(existing.getRoomType());
+        String nextNormalizedName = normalizeRoomTypeName(resolved.request().roomType());
+        if (currentNormalizedName != null && nextNormalizedName != null && !currentNormalizedName.equals(nextNormalizedName)) {
+          existing.setRoomType("__tmp_room_type_" + hostel.getId() + "_" + (existing.getId() == null ? renameSequence : existing.getId()) + "_" + renameSequence);
+          renamedAny = true;
+          renameSequence++;
+        }
+      }
+
+      if (removedAny || renamedAny) {
+        hostelRepository.flush();
+      }
+
+      for (ResolvedRoomTypeUpdate resolved : resolvedUpdates) {
+        RoomTypeRequest req = resolved.request();
+        HostelRoomType existing = resolved.existing();
+        if (existing != null) {
+          existing.setRoomType(req.roomType().trim());
+          existing.setPricePerMonth(req.pricePerMonth());
+          existing.setTotalRooms(req.totalRooms());
+          existing.setAvailableRooms(req.availableRooms());
+          continue;
+        }
+
+        HostelRoomType roomType = new HostelRoomType();
+        roomType.setHostel(hostel);
+        roomType.setRoomType(req.roomType().trim());
+        roomType.setPricePerMonth(req.pricePerMonth());
+        roomType.setTotalRooms(req.totalRooms());
+        roomType.setAvailableRooms(req.availableRooms());
+        hostel.getRoomTypes().add(roomType);
+      }
     }
 
     recalculateDerivedHostelFields(hostel);
+  }
+
+  private String normalizeRoomTypeName(String roomTypeName) {
+    if (roomTypeName == null) {
+      return null;
+    }
+    String trimmed = roomTypeName.trim();
+    return trimmed.isEmpty() ? null : trimmed.toLowerCase(Locale.ROOT);
   }
 
   private void recalculateDerivedHostelFields(Hostel hostel) {
@@ -465,6 +505,18 @@ public class OwnerHostelController {
     hostel.setAvailableRooms(availableRooms);
   }
 
+  private List<HostelRoomTypeItem> mapDistinctRoomTypeItems(List<HostelRoomType> roomTypes) {
+    Map<String, HostelRoomTypeItem> uniqueRoomTypes = new LinkedHashMap<>();
+    for (HostelRoomType roomType : roomTypes) {
+      HostelRoomTypeItem item = mapRoomTypeItem(roomType);
+      String key = roomType.getId() != null
+        ? "id:" + roomType.getId()
+        : "name:" + normalizeRoomTypeName(roomType.getRoomType());
+      uniqueRoomTypes.putIfAbsent(key, item);
+    }
+    return List.copyOf(uniqueRoomTypes.values());
+  }
+
   private Set<Facility> resolveFacilities(List<Integer> facilityIds) {
     return new HashSet<>(facilityRepository.findAllById(facilityIds == null ? List.of() : facilityIds));
   }
@@ -478,4 +530,6 @@ public class OwnerHostelController {
       roomType.getAvailableRooms()
     );
   }
+
+  private record ResolvedRoomTypeUpdate(HostelRoomType existing, RoomTypeRequest request) {}
 }

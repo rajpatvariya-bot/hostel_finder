@@ -35,6 +35,10 @@ const IMAGE_MAX_SIZE = 5 * 1024 * 1024;
 const IMAGE_ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const DEFAULT_ROOM_TYPE_OPTIONS = ["1 Bed Room", "2 Bed Room", "3 Bed Room", "4 Bed Room"];
 
+function getSuggestedRoomTypeName(index) {
+  return DEFAULT_ROOM_TYPE_OPTIONS[index] || `${index + 1} Bed Room`;
+}
+
 async function init() {
   loadMyHostels();
   loadCities();
@@ -134,7 +138,8 @@ function resetImageState() {
 
 function resetRoomTypes(roomTypes = [createRoomTypeDraft(0)]) {
   roomTypeDrafts = roomTypes.map((roomType, index) => ({
-    roomType: roomType.roomType || DEFAULT_ROOM_TYPE_OPTIONS[Math.min(index, DEFAULT_ROOM_TYPE_OPTIONS.length - 1)],
+    id: roomType.id ?? null,
+    roomType: String(roomType.roomType ?? "").trim() || getSuggestedRoomTypeName(index),
     pricePerMonth: roomType.pricePerMonth ?? "",
     totalRooms: roomType.totalRooms ?? 1,
     availableRooms: roomType.availableRooms ?? 0,
@@ -144,7 +149,8 @@ function resetRoomTypes(roomTypes = [createRoomTypeDraft(0)]) {
 
 function createRoomTypeDraft(index) {
   return {
-    roomType: DEFAULT_ROOM_TYPE_OPTIONS[Math.min(index, DEFAULT_ROOM_TYPE_OPTIONS.length - 1)],
+    id: null,
+    roomType: getSuggestedRoomTypeName(index),
     pricePerMonth: "",
     totalRooms: 1,
     availableRooms: 0,
@@ -159,10 +165,11 @@ function addRoomTypeDraft() {
 function renderRoomTypes() {
   if (!els.roomTypeList) return;
 
-  els.roomTypeList.innerHTML = roomTypeDrafts.map((roomType, index) => {
-    const selectOptions = DEFAULT_ROOM_TYPE_OPTIONS
-      .map((option) => `<option value="${escapeHtml(option)}" ${option === roomType.roomType ? "selected" : ""}>${escapeHtml(option)}</option>`)
-      .join("");
+  const suggestionOptions = DEFAULT_ROOM_TYPE_OPTIONS
+    .map((option) => `<option value="${escapeHtml(option)}"></option>`)
+    .join("");
+
+  const cards = roomTypeDrafts.map((roomType, index) => {
 
     return `
       <div class="card" style="padding:16px; border:1px solid var(--border); background:rgba(255,255,255,0.03);">
@@ -181,9 +188,14 @@ function renderRoomTypes() {
         <div style="display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px;">
           <div class="field">
             <label class="label">Room Type</label>
-            <select class="select" onchange="updateRoomTypeField(${index}, 'roomType', this.value)">
-              ${selectOptions}
-            </select>
+            <input
+              type="text"
+              class="input"
+              list="roomTypeSuggestions"
+              value="${escapeHtml(roomType.roomType)}"
+              placeholder="1 Bed Room"
+              oninput="updateRoomTypeField(${index}, 'roomType', this.value)"
+            >
           </div>
           <div class="field">
             <label class="label">Price Per Month (₹)</label>
@@ -220,6 +232,11 @@ function renderRoomTypes() {
       </div>
     `;
   }).join("");
+
+  els.roomTypeList.innerHTML = `
+    <datalist id="roomTypeSuggestions">${suggestionOptions}</datalist>
+    ${cards}
+  `;
 }
 
 window.updateRoomTypeField = (index, field, value) => {
@@ -474,6 +491,7 @@ function renderHostels(items) {
       ? h.roomTypes.map((roomType) => `${escapeHtml(roomType.roomType)}: ₹${formatAmount(roomType.pricePerMonth)}`).join(" • ")
       : "No room types added";
     const card = document.createElement("div");
+    const roomTypeSummaryHtml = renderRoomTypeSummary(h.roomTypes);
     card.className = "card";
 
     let actionButtons = `
@@ -500,7 +518,7 @@ function renderHostels(items) {
           <span><strong>From ₹${formatAmount(h.pricePerMonth)}</strong>/mo</span>
           <span>${h.availableRooms}/${h.totalRooms} Rooms</span>
         </div>
-        <p style="font-size:12px; opacity:0.78; margin:0 0 14px 0;">${roomTypeSummary}</p>
+        ${roomTypeSummaryHtml}
         <div style="display:flex; gap:8px;">
           ${actionButtons}
         </div>
@@ -533,6 +551,7 @@ function renderInquiries(inquiries) {
           <span class="badge" style="background:${i.status === "PENDING" ? "#ffc107" : (i.status === "ACCEPTED" ? "#28a745" : "#dc3545")}; color:#fff; border:none;">${i.status}</span>
         </div>
         <p style="font-size:13px; margin:8px 0;">Hostel: <strong>${escapeHtml(i.hostelName)}</strong></p>
+        ${i.roomType ? `<p style="font-size:13px; margin:4px 0;">Room Type: <strong>${escapeHtml(i.roomType)}</strong></p>` : ""}
         <p style="font-size:13px; margin:4px 0;">Request Type: <strong>${escapeHtml(formatRequestType(i.requestType))}</strong></p>
         <p style="font-size:13px; margin:4px 0;">Rooms: <strong>${i.requestedRoomCount}</strong></p>
         <p style="font-size:13px; margin:4px 0;">Contact: <strong>${escapeHtml(i.studentPhone)}</strong></p>
@@ -617,6 +636,7 @@ async function loadAreas(cityId, preSelectAreaId = null) {
 
 function collectRoomTypes() {
   const roomTypes = roomTypeDrafts.map((roomType) => ({
+    id: Number.isInteger(Number(roomType.id)) && Number(roomType.id) > 0 ? Number(roomType.id) : null,
     roomType: String(roomType.roomType ?? "").trim(),
     pricePerMonth: Number(roomType.pricePerMonth),
     totalRooms: Number(roomType.totalRooms),
@@ -780,6 +800,28 @@ function formatAmount(value) {
   if (value == null || value === "") return "";
   const number = Number(value);
   return Number.isFinite(number) ? number.toLocaleString("en-IN") : String(value);
+}
+
+function renderRoomTypeSummary(roomTypes) {
+  if (!Array.isArray(roomTypes) || !roomTypes.length) {
+    return `<p style="font-size:12px; opacity:0.78; margin:0 0 14px 0;">No room types added</p>`;
+  }
+
+  return `
+    <div class="room-type-summary-list">
+      ${roomTypes.map((roomType) => `
+        <div class="room-type-summary-item">
+          <div>
+            <strong>${escapeHtml(roomType.roomType)}</strong>
+          </div>
+          <div class="room-type-summary-meta">
+            <span>₹${formatAmount(roomType.pricePerMonth)}/mo</span>
+            <span>${escapeHtml(roomType.availableRooms)}/${escapeHtml(roomType.totalRooms)} available</span>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
 }
 
 function formatRequestType(requestType) {

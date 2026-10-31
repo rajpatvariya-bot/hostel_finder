@@ -16,6 +16,18 @@ function escapeHtml(s) {
     .replaceAll("'", "&#39;");
 }
 
+async function deleteInquiry(id) {
+  const confirmed = window.confirm("Delete this inquiry? This cannot be undone.");
+  if (!confirmed) return;
+
+  try {
+    await apiFetch(`/student/inquiries/${id}`, { method: "DELETE" });
+    await loadInquiries();
+  } catch (error) {
+    window.alert(`Failed to delete inquiry: ${error.message}`);
+  }
+}
+
 async function loadInquiries() {
   try {
     const list = await apiFetch("/student/inquiries", { method: "GET" });
@@ -36,11 +48,16 @@ async function loadInquiries() {
           </div>
           <div style="margin-top:8px; color:#555;">
             Request Type: ${escapeHtml(formatRequestType(i.requestType))} <br>
+            ${i.roomType ? `Room type: ${escapeHtml(i.roomType)} <br>` : ""}
             Rooms requested: ${i.requestedRoomCount} <br>
             Message: ${escapeHtml(i.message)}
           </div>
+          <div style="margin-top:14px; display:flex; justify-content:flex-end;">
+            <button type="button" class="btn btn-danger" data-delete-inquiry="${i.id}">Delete</button>
+          </div>
         </div>
       `;
+      el.querySelector("[data-delete-inquiry]")?.addEventListener("click", () => deleteInquiry(i.id));
       inquiryList.appendChild(el);
     });
   } catch (e) {

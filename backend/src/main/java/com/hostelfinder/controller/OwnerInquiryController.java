@@ -38,7 +38,9 @@ public class OwnerInquiryController {
             i.getMessage(),
             i.getStudent().getName(),
             i.getStudent().getPhone(),
-            i.getOwnerNote()))
+            i.getOwnerNote(),
+            i.getRoomType() != null ? i.getRoomType().getId() : null,
+            i.getRoomType() != null ? i.getRoomType().getRoomType() : null))
         .toList();
   }
 

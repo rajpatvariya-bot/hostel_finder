@@ -1,4 +1,5 @@
-const API_BASE = "http://localhost:8080/api";
+const DEFAULT_API = "http://localhost:8080/api";
+export const API_BASE = (typeof window !== "undefined" && (window.API_BASE || localStorage.getItem("API_BASE"))) || DEFAULT_API;
 
 // Retry configuration
 const MAX_RETRIES = 3;

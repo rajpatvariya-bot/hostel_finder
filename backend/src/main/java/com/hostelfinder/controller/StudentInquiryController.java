@@ -3,6 +3,7 @@ package com.hostelfinder.controller;
 import com.hostelfinder.dto.InquiryDtos;
 import com.hostelfinder.entity.Hostel;
 import com.hostelfinder.entity.Inquiry;
+import com.hostelfinder.entity.HostelRoomType;
 import com.hostelfinder.entity.User;
 import com.hostelfinder.exception.ApiException;
 import com.hostelfinder.repository.HostelRepository;
@@ -34,15 +35,24 @@ public class StudentInquiryController {
       throw new ApiException(HttpStatus.FORBIDDEN, "Only students can send inquiries");
     }
 
-    Hostel h = hostelRepository.findById(req.hostelId())
+    Hostel h = hostelRepository.findByIdFull(req.hostelId())
         .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Hostel not found"));
 
     if (!"PUBLISHED".equalsIgnoreCase(h.getStatus())) {
       throw new ApiException(HttpStatus.BAD_REQUEST, "Hostel not available");
     }
 
+    HostelRoomType selectedRoomType = null;
+    if (req.roomTypeId() != null) {
+      selectedRoomType = h.getRoomTypes().stream()
+        .filter(roomType -> roomType.getId() != null && roomType.getId().equals(req.roomTypeId()))
+        .findFirst()
+        .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "Selected room type is invalid for this hostel"));
+    }
+
     Inquiry inq = new Inquiry();
     inq.setHostel(h);
+    inq.setRoomType(selectedRoomType);
     inq.setStudent(user);
     inq.setRequestedRoomCount(req.requestedRoomCount());
     inq.setMessage(req.message());
@@ -69,8 +79,27 @@ public class StudentInquiryController {
             i.getMessage(),
             i.getStudent().getName(),
             i.getStudent().getPhone(),
-            i.getOwnerNote()))
+            i.getOwnerNote(),
+            i.getRoomType() != null ? i.getRoomType().getId() : null,
+            i.getRoomType() != null ? i.getRoomType().getRoomType() : null))
         .toList();
+  }
+
+  @DeleteMapping("/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void delete(@PathVariable Long id, @AuthenticationPrincipal User user) {
+    if (!"STUDENT".equalsIgnoreCase(user.getRole())) {
+      throw new ApiException(HttpStatus.FORBIDDEN, "Only students can delete inquiries");
+    }
+
+    Inquiry inquiry = inquiryRepository.findById(id)
+      .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Inquiry not found"));
+
+    if (inquiry.getStudent() == null || !inquiry.getStudent().getId().equals(user.getId())) {
+      throw new ApiException(HttpStatus.FORBIDDEN, "You can only delete your own inquiries");
+    }
+
+    inquiryRepository.delete(inquiry);
   }
 
   private String normalizeRequestType(String requestType) {

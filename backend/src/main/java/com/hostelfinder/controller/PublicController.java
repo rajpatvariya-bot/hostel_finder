@@ -209,16 +209,23 @@ public class PublicController {
   }
 
   private List<PublicDtos.HostelRoomTypeItem> mapRoomTypes(Hostel hostel) {
-    return hostel.getRoomTypes().stream()
+    LinkedHashMap<String, PublicDtos.HostelRoomTypeItem> uniqueRoomTypes = new LinkedHashMap<>();
+    hostel.getRoomTypes().stream()
       .sorted(Comparator.comparing(HostelRoomType::getId, Comparator.nullsLast(Long::compareTo)))
-      .map(roomType -> new PublicDtos.HostelRoomTypeItem(
-        roomType.getId(),
-        roomType.getRoomType(),
-        roomType.getPricePerMonth(),
-        roomType.getTotalRooms(),
-        roomType.getAvailableRooms()
-      ))
-      .toList();
+      .forEach(roomType -> {
+        PublicDtos.HostelRoomTypeItem item = new PublicDtos.HostelRoomTypeItem(
+          roomType.getId(),
+          roomType.getRoomType(),
+          roomType.getPricePerMonth(),
+          roomType.getTotalRooms(),
+          roomType.getAvailableRooms()
+        );
+        String key = roomType.getId() != null
+          ? "id:" + roomType.getId()
+          : "name:" + safe(roomType.getRoomType()).trim().toLowerCase(Locale.ROOT);
+        uniqueRoomTypes.putIfAbsent(key, item);
+      });
+    return List.copyOf(uniqueRoomTypes.values());
   }
 
   private List<String> getImageUrls(Hostel hostel) {

@@ -7,6 +7,7 @@ import com.hostelfinder.entity.Area;
 import com.hostelfinder.entity.City;
 import com.hostelfinder.entity.Hostel;
 import com.hostelfinder.entity.HostelImage;
+import com.hostelfinder.entity.HostelRoomType;
 import com.hostelfinder.entity.User;
 import com.hostelfinder.exception.ApiException;
 import com.hostelfinder.repository.AreaRepository;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -126,7 +128,16 @@ class OwnerHostelControllerTest {
     first.setDisplayOrder(0);
     first.setHostel(hostel);
 
+    HostelRoomType roomType = new HostelRoomType();
+    roomType.setId(301L);
+    roomType.setHostel(hostel);
+    roomType.setRoomType("1 Bed Room");
+    roomType.setPricePerMonth(BigDecimal.valueOf(8000));
+    roomType.setTotalRooms(10);
+    roomType.setAvailableRooms(2);
+
     hostel.setImages(List.of(second, first));
+    hostel.setRoomTypes(List.of(roomType, roomType));
 
     when(hostelRepository.findByOwnerUserId(owner.getId())).thenReturn(List.of(hostel));
     when(hostelImageRepository.findByHostel_IdOrderByDisplayOrderAscIdAsc(77L)).thenReturn(List.of(second, first));
@@ -135,6 +146,10 @@ class OwnerHostelControllerTest {
 
     assertEquals(1, items.size());
     assertEquals(List.of("/uploads/hostels/first.webp", "/uploads/hostels/second.webp"), items.get(0).imageUrls());
+    assertEquals(
+      List.of(new PublicDtos.HostelRoomTypeItem(301L, "1 Bed Room", BigDecimal.valueOf(8000), 10, 2)),
+      items.get(0).roomTypes()
+    );
     assertEquals(
       List.of(
         new HostelImageDtos.HostelImageItem(21L, "/uploads/hostels/first.webp", 0),
@@ -253,7 +268,7 @@ class OwnerHostelControllerTest {
     hostel.setMessAvailable(true);
     hostel.setStatus("DRAFT");
 
-    when(hostelRepository.findById(55L)).thenReturn(Optional.of(hostel));
+    when(hostelRepository.findByIdFull(55L)).thenReturn(Optional.of(hostel));
     when(hostelRepository.save(any(Hostel.class))).thenAnswer(invocation -> invocation.getArgument(0));
     doNothing().when(hostelRepository).flush();
 
@@ -284,6 +299,104 @@ class OwnerHostelControllerTest {
         new PublicDtos.HostelRoomTypeItem(null, "4 Bed Room", BigDecimal.valueOf(5400), 5, 1)
       ),
       response.roomTypes()
+    );
+  }
+
+  @Test
+  void updateHostelUpdatesExistingRoomTypesByIdAddsNewOnesAndRemovesMissingOnes() {
+    HostelRepository hostelRepository = mock(HostelRepository.class);
+    CityRepository cityRepository = mock(CityRepository.class);
+    AreaRepository areaRepository = mock(AreaRepository.class);
+    FacilityRepository facilityRepository = mock(FacilityRepository.class);
+    HostelImageRepository hostelImageRepository = mock(HostelImageRepository.class);
+    FileStorageService fileStorageService = mock(FileStorageService.class);
+
+    OwnerHostelController controller = new OwnerHostelController(
+      hostelRepository,
+      cityRepository,
+      areaRepository,
+      facilityRepository,
+      hostelImageRepository,
+      fileStorageService
+    );
+
+    User owner = new User();
+    owner.setId(11L);
+    owner.setRole("OWNER");
+
+    City city = new City();
+    city.setName("Indore");
+
+    Area area = new Area();
+    area.setName("Vijay Nagar");
+    area.setCity(city);
+
+    Hostel hostel = new Hostel();
+    hostel.setId(55L);
+    hostel.setOwnerUserId(owner.getId());
+    hostel.setCity(city);
+    hostel.setArea(area);
+    hostel.setHostelName("Galaxy Girls PG");
+    hostel.setAddressLine("Scheme 54");
+    hostel.setGenderType("GIRLS");
+    hostel.setMessAvailable(true);
+    hostel.setStatus("DRAFT");
+
+    HostelRoomType singleRoom = new HostelRoomType();
+    singleRoom.setId(501L);
+    singleRoom.setHostel(hostel);
+    singleRoom.setRoomType("1 Bed Room");
+    singleRoom.setPricePerMonth(BigDecimal.valueOf(9000));
+    singleRoom.setTotalRooms(6);
+    singleRoom.setAvailableRooms(2);
+
+    HostelRoomType sharedRoom = new HostelRoomType();
+    sharedRoom.setId(502L);
+    sharedRoom.setHostel(hostel);
+    sharedRoom.setRoomType("2 Bed Room");
+    sharedRoom.setPricePerMonth(BigDecimal.valueOf(6500));
+    sharedRoom.setTotalRooms(8);
+    sharedRoom.setAvailableRooms(3);
+
+    hostel.getRoomTypes().add(singleRoom);
+    hostel.getRoomTypes().add(sharedRoom);
+
+    when(hostelRepository.findByIdFull(55L)).thenReturn(Optional.of(hostel));
+    when(hostelRepository.save(any(Hostel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    doNothing().when(hostelRepository).flush();
+
+    PublicDtos.HostelDetailsResponse response = controller.updateHostel(
+      owner,
+      55L,
+      new OwnerHostelDtos.UpdateHostelRequest(
+        "Galaxy Girls PG",
+        "Scheme 54",
+        "Updated room options",
+        "",
+        "GIRLS",
+        true,
+        List.of(
+          new OwnerHostelDtos.RoomTypeRequest(501L, "Premium Single", BigDecimal.valueOf(9800), 5, 1),
+          new OwnerHostelDtos.RoomTypeRequest(null, "3 Bed Room", BigDecimal.valueOf(6000), 10, 4)
+        ),
+        List.of()
+      )
+    );
+
+    assertEquals(BigDecimal.valueOf(6000), response.pricePerMonth());
+    assertEquals(15, response.totalRooms());
+    assertEquals(5, response.availableRooms());
+    assertIterableEquals(
+      List.of(
+        new PublicDtos.HostelRoomTypeItem(501L, "Premium Single", BigDecimal.valueOf(9800), 5, 1),
+        new PublicDtos.HostelRoomTypeItem(null, "3 Bed Room", BigDecimal.valueOf(6000), 10, 4)
+      ),
+      response.roomTypes()
+    );
+    assertEquals(2, hostel.getRoomTypes().size());
+    assertIterableEquals(
+      List.of("Premium Single", "3 Bed Room"),
+      hostel.getRoomTypes().stream().map(HostelRoomType::getRoomType).toList()
     );
   }
 }
