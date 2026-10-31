@@ -12,63 +12,83 @@
     },
     {
       "source": "/",
-      "destination": "/backend/src/main/resources/static/pages/index.html"
+      "destination": "/pages/index.html"
     },
     {
       "source": "/index",
-      "destination": "/backend/src/main/resources/static/pages/index.html"
+      "destination": "/pages/index.html"
     },
     {
-      "source": "/index.html",
-      "destination": "/backend/src/main/resources/static/pages/index.html"
+      "source": "/login",
+      "destination": "/pages/login.html"
     },
     {
-      "source": "/css/:match*",
-      "destination": "/backend/src/main/resources/static/css/:match*"
+      "source": "/login.html",
+      "destination": "/pages/login.html"
     },
     {
-      "source": "/js/:match*",
-      "destination": "/backend/src/main/resources/static/js/:match*"
+      "source": "/hostel-details",
+      "destination": "/pages/hostel-details.html"
     },
     {
-      "source": "/img/:match*",
-      "destination": "/backend/src/main/resources/static/img/:match*"
+      "source": "/hostel-details.html",
+      "destination": "/pages/hostel-details.html"
     },
     {
-      "source": "/assets/:match*",
-      "destination": "/backend/src/main/resources/static/assets/:match*"
+      "source": "/admin-login",
+      "destination": "/pages/admin-login.html"
     },
     {
-      "source": "/pages/css/:match*",
-      "destination": "/backend/src/main/resources/static/css/:match*"
+      "source": "/admin-login.html",
+      "destination": "/pages/admin-login.html"
     },
     {
-      "source": "/pages/js/:match*",
-      "destination": "/backend/src/main/resources/static/js/:match*"
+      "source": "/admin-dashboard",
+      "destination": "/pages/admin-dashboard.html"
     },
     {
-      "source": "/pages/img/:match*",
-      "destination": "/backend/src/main/resources/static/img/:match*"
+      "source": "/admin-dashboard.html",
+      "destination": "/pages/admin-dashboard.html"
     },
     {
-      "source": "/:page(login|admin-login|admin-dashboard|admin-owners|hostel-details|owner-dashboard|owner-inquiries|owner-register|student-dashboard)",
-      "destination": "/backend/src/main/resources/static/pages/:page.html"
+      "source": "/admin-owners",
+      "destination": "/pages/admin-owners.html"
     },
     {
-      "source": "/:page(login|admin-login|admin-dashboard|admin-owners|hostel-details|owner-dashboard|owner-inquiries|owner-register|student-dashboard).html",
-      "destination": "/backend/src/main/resources/static/pages/:page.html"
+      "source": "/admin-owners.html",
+      "destination": "/pages/admin-owners.html"
     },
     {
-      "source": "/pages/:page(login|admin-login|admin-dashboard|admin-owners|hostel-details|owner-dashboard|owner-inquiries|owner-register|student-dashboard|index)",
-      "destination": "/backend/src/main/resources/static/pages/:page.html"
+      "source": "/owner-dashboard",
+      "destination": "/pages/owner-dashboard.html"
     },
     {
-      "source": "/pages/:page(login|admin-login|admin-dashboard|admin-owners|hostel-details|owner-dashboard|owner-inquiries|owner-register|student-dashboard|index).html",
-      "destination": "/backend/src/main/resources/static/pages/:page.html"
+      "source": "/owner-dashboard.html",
+      "destination": "/pages/owner-dashboard.html"
     },
     {
-      "source": "/pages/:match*",
-      "destination": "/backend/src/main/resources/static/pages/:match*"
+      "source": "/owner-inquiries",
+      "destination": "/pages/owner-inquiries.html"
+    },
+    {
+      "source": "/owner-inquiries.html",
+      "destination": "/pages/owner-inquiries.html"
+    },
+    {
+      "source": "/owner-register",
+      "destination": "/pages/owner-register.html"
+    },
+    {
+      "source": "/owner-register.html",
+      "destination": "/pages/owner-register.html"
+    },
+    {
+      "source": "/student-dashboard",
+      "destination": "/pages/student-dashboard.html"
+    },
+    {
+      "source": "/student-dashboard.html",
+      "destination": "/pages/student-dashboard.html"
     }
   ]
 }
