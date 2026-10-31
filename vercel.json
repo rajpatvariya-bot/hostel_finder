@@ -1,13 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "/pages/index.html",
-      "permanent": false
-    }
-  ],
   "rewrites": [
     {
       "source": "/api/:match*",
@@ -18,12 +11,16 @@
       "destination": "https://hostel-finder-88mw.onrender.com/uploads/:match*"
     },
     {
-      "source": "/index.html",
+      "source": "/",
       "destination": "/backend/src/main/resources/static/pages/index.html"
     },
     {
-      "source": "/pages/:match*",
-      "destination": "/backend/src/main/resources/static/pages/:match*"
+      "source": "/index",
+      "destination": "/backend/src/main/resources/static/pages/index.html"
+    },
+    {
+      "source": "/index.html",
+      "destination": "/backend/src/main/resources/static/pages/index.html"
     },
     {
       "source": "/css/:match*",
@@ -42,8 +39,36 @@
       "destination": "/backend/src/main/resources/static/assets/:match*"
     },
     {
-      "source": "/:page((?!pages|css|js|img|assets|backend).+\\.html)",
-      "destination": "/backend/src/main/resources/static/pages/:page"
+      "source": "/pages/css/:match*",
+      "destination": "/backend/src/main/resources/static/css/:match*"
+    },
+    {
+      "source": "/pages/js/:match*",
+      "destination": "/backend/src/main/resources/static/js/:match*"
+    },
+    {
+      "source": "/pages/img/:match*",
+      "destination": "/backend/src/main/resources/static/img/:match*"
+    },
+    {
+      "source": "/:page(login|admin-login|admin-dashboard|admin-owners|hostel-details|owner-dashboard|owner-inquiries|owner-register|student-dashboard)",
+      "destination": "/backend/src/main/resources/static/pages/:page.html"
+    },
+    {
+      "source": "/:page(login|admin-login|admin-dashboard|admin-owners|hostel-details|owner-dashboard|owner-inquiries|owner-register|student-dashboard).html",
+      "destination": "/backend/src/main/resources/static/pages/:page.html"
+    },
+    {
+      "source": "/pages/:page(login|admin-login|admin-dashboard|admin-owners|hostel-details|owner-dashboard|owner-inquiries|owner-register|student-dashboard|index)",
+      "destination": "/backend/src/main/resources/static/pages/:page.html"
+    },
+    {
+      "source": "/pages/:page(login|admin-login|admin-dashboard|admin-owners|hostel-details|owner-dashboard|owner-inquiries|owner-register|student-dashboard|index).html",
+      "destination": "/backend/src/main/resources/static/pages/:page.html"
+    },
+    {
+      "source": "/pages/:match*",
+      "destination": "/backend/src/main/resources/static/pages/:match*"
     }
   ]
 }
